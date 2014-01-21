@@ -10,6 +10,9 @@ import os
 TASKS_PATH = os.path.join(os.path.dirname(__file__), "tasks.txt")
 
 def add_task(args):
+    """
+        Adds task to the .txt file
+    """
     f = open(TASKS_PATH, 'a')
     task = ''
     for i in args:
@@ -19,6 +22,9 @@ def add_task(args):
     f.close()
 
 def rm_task(args):
+    """
+        Removes task from .txt file
+    """
     fr = open(TASKS_PATH, 'r')
     lines = fr.readlines()
     fr.close()
