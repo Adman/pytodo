@@ -1,4 +1,4 @@
-ToDo notes
+pyToDo
 ==========
 Remember your tasks via terminal, show them and remove them when they are done!
 
@@ -9,4 +9,4 @@ Dependencies
 
 Usage
 -----
-(for now ./todo_notes.py)
+(for now ./pytodo.py)
