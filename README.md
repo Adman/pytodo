@@ -9,8 +9,10 @@ Dependencies
 
 Usage
 -----
-./pytodo.py [option] task
+./pytodo.py [option] [task]
 
 options can be:
 * add - adds a task
 * rm/remove/done - gets the task done and removes it
+
+or run just ./pytodo.py and see all the tasks
