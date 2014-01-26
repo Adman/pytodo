@@ -12,7 +12,8 @@ Usage
 ./pytodo.py [option] [task]
 
 options can be:
-* add - adds a task
-* rm/remove/done - gets the task done and removes it
+* add <task> - adds a task
+* rm/remove/done <tasknumber> - gets the task done and removes it
+* edit <tasknumber> <task> - edits current task
 
 or run just ./pytodo.py and see all the tasks
