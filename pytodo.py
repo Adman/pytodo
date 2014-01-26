@@ -43,7 +43,7 @@ class Pytodo:
         """Removes a task from .txt file"""
         self._open_file('r')
         lines = self.f.readlines()
-        self.f.close()
+        self._close_file()
 
         for i in numbers:
             try:
@@ -51,6 +51,7 @@ class Pytodo:
                     lines[int(i) - 1] = ''
             except IndexError:
                 print "Could not remove task number %d. Task does not exist!" % int(i)
+                return
 
         tasks = ''
         for task in lines:
@@ -60,7 +61,30 @@ class Pytodo:
         self._write_file(tasks)
         self._close_file()
 
+    def edit_task(self, number, task):
+        """Edits current task"""
+        self._open_file('r')
+        lines = self.f.readlines()
+        self._close_file()
 
+        try:
+            if lines[int(number) - 1]:
+                lines[int(number) - 1] = ''
+                for i in task:
+                    lines[int(number) - 1] += i + ' '
+                lines[int(number) - 1] += '\n'
+        except IndexError:
+            print "Could not edit task number %d. Task does not exist!" % int(number)
+            return
+        
+        tasks = ''
+        for t in lines:
+            tasks += t
+
+        self._open_file('w')
+        self._write_file(tasks)
+        self._close_file()
+        
     def show_notification(self):
         """Shows notification window"""
         self._open_file('r+')
@@ -101,6 +125,8 @@ class Pytodo:
                 self.add_task(self.args[1:])
             elif cmd == 'rm' or cmd == 'remove' or cmd == 'done':
                 self.rm_task(self.args[1:])
+            elif cmd == 'edit':
+                self.edit_task(self.args[1], self.args[2:])
             else:
                 self.print_help()
                 sys.exit(1)
