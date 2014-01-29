@@ -9,7 +9,7 @@ Dependencies
 
 Usage
 -----
-./pytodo.py [option] [task/number]
+  $ ./pytodo.py [option] [task/number]
 
 options can be:
 * add [task] - adds a task
