@@ -59,6 +59,7 @@ class Pytodo:
             text = re.sub("@priority[LCN]@", "", line)
             tasks.append(Task(text, ID, priority))
             
+        return tasks
 
     def add_task(self, words):
         """Adds a task to the .txt file"""
