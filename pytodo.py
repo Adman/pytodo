@@ -6,11 +6,17 @@
 import sys
 import pynotify
 import os
+import re
 
 TASKS_PATH = os.path.join(os.path.dirname(__file__), "tasks.txt")
 
 
 class Task:
+    """
+        @param string text
+        @param int ID
+        @param string priority (low - L/normal - N/critical - C)
+    """
     def __init__(self, text, ID, priority):
         self.text = text
         self.ID = ID
@@ -22,12 +28,37 @@ class Pytodo:
         self.args = args
         self.f = None
 
+        self.tasks = self._read_tasks()
+
         if not os.path.exists(os.path.dirname(TASKS_PATH)):
             os.mkdir(os.path.dirname(TASKS_PATH))
 
         if not os.path.isfile(TASKS_PATH):
             f = open(TASKS_PATH, 'w')
             f.close()
+
+    def _read_tasks(self):
+        """Reads tasks from .txt file and parse them"""
+        self._open_file('r')
+        lines = self.f.readlines()
+        self._close_file()
+
+        for i in range(len(lines)):
+            lines[i] = lines[i].replace(" \n", "")
+
+        tasks = []
+        for i, line in enumerate(lines):
+            if "@priorityL@" in line:
+                priority = "L"
+            elif "@priorityC@" in line:
+                priority = "C"
+            else:
+                priority = "N"
+
+            ID = i + 1
+            text = re.sub("@priority[LCN]@", "", line)
+            tasks.append(Task(text, ID, priority))
+            
 
     def add_task(self, words):
         """Adds a task to the .txt file"""
