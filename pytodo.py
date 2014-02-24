@@ -28,7 +28,7 @@ class Pytodo:
         self.args = args
         self.f = None
 
-        self.tasks = self._read_tasks()
+        #self.tasks = self._read_tasks()
 
         if not os.path.exists(os.path.dirname(TASKS_PATH)):
             os.mkdir(os.path.dirname(TASKS_PATH))
