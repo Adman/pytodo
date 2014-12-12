@@ -22,13 +22,14 @@ class Task:
         self.ID = ID
         self.priority = priority
 
+    def __repr__(self):
+        return "[{0}] [{1}] -> {2}".format(self.ID, self.priority, self.text)
+
 
 class Pytodo:
     def __init__(self, args):
         self.args = args
         self.f = None
-
-        #self.tasks = self._read_tasks()
 
         if not os.path.exists(os.path.dirname(TASKS_PATH)):
             os.mkdir(os.path.dirname(TASKS_PATH))
@@ -37,14 +38,16 @@ class Pytodo:
             f = open(TASKS_PATH, 'w')
             f.close()
 
+        self.tasks = self._read_tasks()
+        #print self.tasks
+
     def _read_tasks(self):
         """Reads tasks from .txt file and parse them"""
         self._open_file('r')
         lines = self.f.readlines()
         self._close_file()
 
-        for i in range(len(lines)):
-            lines[i] = lines[i].replace(" \n", "")
+        lines = [line[:-1] for line in lines]
 
         tasks = []
         for i, line in enumerate(lines):
@@ -63,83 +66,53 @@ class Pytodo:
 
     def add_task(self, words):
         """Adds a task to the .txt file"""
-        task = ''
-        for i in words:
-            task += i + ' '
-
         self._open_file('a')
-        self._write_file(task + '\n')
+        self._write_file(' '.join(words) + '\n')
         self._close_file()
+        # TODO: add parameter for priority
+        self.tasks.append(Task(' '.join(words), len(self.tasks) + 1, 'N'))
 
-    def rm_task(self, numbers):
+    def rm_task(self, ids):
         """Removes a task from .txt file"""
-        self._open_file('r')
-        lines = self.f.readlines()
-        self._close_file()
+        ids = [int(i) for i in ids]
 
-        for i in numbers:
-            try:
-                if lines[int(i) - 1]:
-                    lines[int(i) - 1] = ''
-            except IndexError:
-                print "Could not remove task number %d. Task does not exist!" % int(i)
-                return
+        for i, t in enumerate(self.tasks):
+            if t.ID in ids:
+                self.tasks.pop(i)
 
-        tasks = ''
-        for task in lines:
-            tasks += task
+        tasks = [x.text for x in self.tasks]
 
         self._open_file('w')
-        self._write_file(tasks)
+        self._write_file("\n".join(tasks))
         self._close_file()
 
-    def edit_task(self, number, task):
+    def edit_task(self, ID, task):
         """Edits current task"""
-        self._open_file('r')
-        lines = self.f.readlines()
-        self._close_file()
-
         try:
-            if lines[int(number) - 1]:
-                lines[int(number) - 1] = ''
-                for i in task:
-                    lines[int(number) - 1] += i + ' '
-                lines[int(number) - 1] += '\n'
+            self.tasks[int(ID)-1].text = ' '.join(task)
         except IndexError:
-            print "Could not edit task number %d. Task does not exist!" % int(number)
+            print "Could not edit task number %d. Task does not exist!" % int(ID)
             return
         
-        tasks = ''
-        for t in lines:
-            tasks += t
+        tasks = [x.text for x in self.tasks]
 
         self._open_file('w')
-        self._write_file(tasks)
+        self._write_file('\n'.join(tasks))
         self._close_file()
         
     def show_notification(self):
         """Shows notification window"""
-        self._open_file('r+')
-        tasks = self.f.read()
-        self._close_file()
-
-        tasks = tasks.split('\n')
-        tasks.pop()
-
         tasklist = ''
-        for i, j in enumerate(tasks):
-            if i + 1 == len(tasks):
-                tasklist += '%d. %s' % (i+1, j)
-            else:
-                tasklist += '%d. %s\n' % (i+1, j)
+        for task in self.tasks:
+            tasklist += "{0}. {1}\n".format(task.ID, task.text)
 
-        n = pynotify.Notification ("ToDo Notes", tasklist)
+        n = pynotify.Notification ("ToDo Notes", tasklist[:-1])
 
         n.show()
 
     def print_help(self):
         """Prints available commands on the screen"""
-        print "ToDo Notes, (c) 2013 Adman"
+        print "ToDo Notes, (c) 2013-2014 Adman"
         print "Available arguments:"
         print "     help - show available commands"
         print "     add <task> - add a task to the todo list"
@@ -158,7 +131,7 @@ class Pytodo:
             elif cmd == 'rm' or cmd == 'remove' or cmd == 'done':
                 self.rm_task(self.args[1:])
             elif cmd == 'edit':
-                self.edit_task(self.args[1], self.args[2:])
+                self.edit_task(int(self.args[1]), self.args[2:])
             else:
                 self.print_help()
                 sys.exit(1)
