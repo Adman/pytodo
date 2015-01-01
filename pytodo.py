@@ -139,12 +139,15 @@ class Pytodo:
         self.show_notification()
 
     def _open_file(self, mode="r"):
+        """Opens file with tasks in given mode"""
         self.f = open(TASKS_PATH, mode)
 
     def _write_file(self, text):
+        """Write given text to the tasks file"""
         self.f.write(text)
 
     def _close_file(self):
+        """Just close file object"""
         self.f.close()
 
       
