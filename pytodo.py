@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014,  Adrian Matejov
+# Copyright (C) 2013-2015,  Adrian Matejov
 
 import sys
 import pynotify
