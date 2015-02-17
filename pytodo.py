@@ -112,11 +112,12 @@ class Pytodo:
 
     def print_help(self):
         """Prints available commands on the screen"""
-        print "ToDo Notes, (c) 2013-2014 Adman"
+        print "ToDo Notes, (c) 2013-2015 Adman"
         print "Available arguments:"
         print "     help - show available commands"
         print "     add <task> - add a task to the todo list"
         print "     rm/remove/done <number> - remove a task from the todo list"
+        print "     edit <number> <task> - edit a task from the todo list"
 
 
     def process(self):
