@@ -6,6 +6,8 @@ Dependencies
 ------------
 * Python 2.x+
 * Pynotify
+* If you have problem with old version of notity-send, follow
+[this](http://www.webupd8.org/2014/04/configurable-notification-bubbles-for.html) tutorial.
 
 ## Usage
     

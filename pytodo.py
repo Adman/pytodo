@@ -39,7 +39,6 @@ class Pytodo:
             f.close()
 
         self.tasks = self._read_tasks()
-        #print self.tasks
 
     def _read_tasks(self):
         """Reads tasks from .txt file and parse them"""
@@ -61,7 +60,7 @@ class Pytodo:
             ID = i + 1
             text = re.sub("@priority[LCN]@", "", line)
             tasks.append(Task(text, ID, priority))
-            
+
         return tasks
 
     def add_task(self, words):
@@ -91,22 +90,23 @@ class Pytodo:
         try:
             self.tasks[int(ID)-1].text = ' '.join(task)
         except IndexError:
-            print "Could not edit task number %d. Task does not exist!" % int(ID)
+            print "Could not edit task number {0}. " \
+                  "Task does not exist!".format(int(ID))
             return
-        
+
         tasks = [x.text for x in self.tasks]
 
         self._open_file('w')
         self._write_file('\n'.join(tasks))
         self._close_file()
-        
+
     def show_notification(self):
         """Shows notification window"""
         tasklist = ''
         for task in self.tasks:
             tasklist += "{0}. {1}\n".format(task.ID, task.text)
 
-        n = pynotify.Notification ("ToDo Notes", tasklist[:-1])
+        n = pynotify.Notification("ToDo Notes", tasklist[:-1])
 
         n.show()
 
@@ -118,7 +118,6 @@ class Pytodo:
         print "     add <task> - add a task to the todo list"
         print "     rm/remove/done <number> - remove a task from the todo list"
         print "     edit <number> <task> - edit a task from the todo list"
-
 
     def process(self):
         cmd = self.args[0].lower() if len(self.args) else 0
@@ -151,9 +150,9 @@ class Pytodo:
         """Just close file object"""
         self.f.close()
 
-      
+
 if __name__ == '__main__':
-    pynotify.init("summary-only")
+    pynotify.init("Pytodo")
     args = sys.argv[1:]
 
     todo = Pytodo(args)
