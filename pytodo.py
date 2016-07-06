@@ -1,118 +1,132 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2015,  Adrian Matejov
+# Copyright (C) 2013-2016,  Adrian Matejov
 
 import sys
 import pynotify
 import os
-import re
+import json
+import datetime
+from operator import attrgetter
 
-TASKS_PATH = os.path.join(os.path.dirname(__file__), "tasks.txt")
+TASKS_PATH = os.path.join(os.path.dirname(__file__), "tasks.json")
 
 
-class Task:
+class Task(object):
     """
         @param string text
-        @param int ID
-        @param string priority (low - L/normal - N/critical - C)
+        @param string priority (low - 0/normal - 1/critical - 2)
+        @param datetime date_added
     """
-    def __init__(self, text, ID, priority):
-        self.text = text
-        self.ID = ID
-        self.priority = priority
+    def __init__(self, text, priority, date_added):
+        self._text = text
+        self._priority = priority
+        self._date_added = date_added
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+
+    @property
+    def priority(self):
+        return self._priority
+
+    @priority.setter
+    def priority(self, value):
+        self._priority = value
+
+    @property
+    def date_added(self):
+        return self._date_added
+
+    @date_added.setter
+    def date_added(self, value):
+        self._date_added = value
+
+    def dump(self):
+        return {'priority': self._priority, 'text': self._text,
+                'date_added': str(self._date_added)}
 
     def __repr__(self):
-        return "[{0}] [{1}] -> {2}".format(self.ID, self.priority, self.text)
+        return "[{1}] -> {2}".format(self._priority, self._text)
+
+    def __str__(self):
+        return self._text
 
 
 class Pytodo:
     def __init__(self, args):
         self.args = args
-        self.f = None
+        self.data = None
+        self.tasks = []
 
         if not os.path.exists(os.path.dirname(TASKS_PATH)):
             os.mkdir(os.path.dirname(TASKS_PATH))
 
         if not os.path.isfile(TASKS_PATH):
-            f = open(TASKS_PATH, 'w')
-            f.close()
+            self._write_file()
 
         self.tasks = self._read_tasks()
+        self._sort_tasks()
+
+    def _sort_tasks(self):
+        self.tasks.sort(key=attrgetter('priority', 'date_added'), reverse=True)
 
     def _read_tasks(self):
-        """Reads tasks from .txt file and parse them"""
-        self._open_file('r')
-        lines = self.f.readlines()
-        self._close_file()
-
-        lines = [line[:-1] for line in lines]
+        """Parse json tasks file"""
+        with open(TASKS_PATH) as data_file:
+            self.data = json.load(data_file)
 
         tasks = []
-        for i, line in enumerate(lines):
-            if "@priorityL@" in line:
-                priority = "L"
-            elif "@priorityC@" in line:
-                priority = "C"
-            else:
-                priority = "N"
-
-            ID = i + 1
-            text = re.sub("@priority[LCN]@", "", line)
-            tasks.append(Task(text, ID, priority))
+        for i, task in enumerate(self.data['tasks']):
+            date_obj = datetime.datetime.strptime(task['date_added'],
+                                                  '%Y-%m-%d %H:%M:%S.%f')
+            tasks.append(Task(task['text'], task['priority'], date_obj))
 
         return tasks
 
     def add_task(self, words):
-        """Adds a task to the .txt file"""
-        self._open_file('a')
-        self._write_file(' '.join(words) + '\n')
-        self._close_file()
+        """Add new task"""
         # TODO: add parameter for priority
-        self.tasks.append(Task(' '.join(words), len(self.tasks) + 1, 'N'))
+        self.tasks.append(Task(' '.join(words), '1',
+                               datetime.datetime.utcnow()))
+        self._sort_tasks()
+        self._write_file()
 
-    def rm_task(self, ids):
-        """Removes a task from .txt file"""
-        ids = [int(i) for i in ids]
+    def rm_task(self, num):
+        """Remove a task from tasks list"""
+        self.tasks.pop(int(num)-1)
+        self._write_file()
 
-        for i, t in enumerate(self.tasks):
-            if t.ID in ids:
-                self.tasks.pop(i)
-
-        tasks = [x.text for x in self.tasks]
-
-        self._open_file('w')
-        self._write_file("\n".join(tasks))
-        self._close_file()
-
-    def edit_task(self, ID, task):
-        """Edits current task"""
+    def edit_task(self, num, task):
+        """Edit current task"""
         try:
-            self.tasks[int(ID)-1].text = ' '.join(task)
+            self.tasks[int(num)-1].text = ' '.join(task)
         except IndexError:
             print "Could not edit task number {0}. " \
-                  "Task does not exist!".format(int(ID))
+                  "Task does not exist!".format(int(num))
             return
 
-        tasks = [x.text for x in self.tasks]
-
-        self._open_file('w')
-        self._write_file('\n'.join(tasks))
-        self._close_file()
+        self._write_file()
 
     def show_notification(self):
-        """Shows notification window"""
+        """Show notification window"""
         tasklist = ''
-        for task in self.tasks:
-            tasklist += "{0}. {1}\n".format(task.ID, task.text)
+        for i, task in enumerate(self.tasks):
+            tasklist += "{0}. {1}\n".format(i+1, task.text)
 
         n = pynotify.Notification("ToDo Notes", tasklist[:-1])
 
         n.show()
 
     def print_help(self):
-        """Prints available commands on the screen"""
-        print "ToDo Notes, (c) 2013-2015 Adman"
+        """Print available commands on the screen"""
+        print "ToDo Notes, (c) 2013-2016, Adman"
         print "Available arguments:"
         print "     help - show available commands"
         print "     add <task> - add a task to the todo list"
@@ -129,7 +143,7 @@ class Pytodo:
             elif cmd == 'add':
                 self.add_task(self.args[1:])
             elif cmd == 'rm' or cmd == 'remove' or cmd == 'done':
-                self.rm_task(self.args[1:])
+                self.rm_task(self.args[1])
             elif cmd == 'edit':
                 self.edit_task(int(self.args[1]), self.args[2:])
             else:
@@ -138,17 +152,12 @@ class Pytodo:
 
         self.show_notification()
 
-    def _open_file(self, mode="r"):
-        """Opens file with tasks in given mode"""
-        self.f = open(TASKS_PATH, mode)
+    def _write_file(self):
+        """Write json dump to file"""
+        self.data['tasks'] = [task.dump() for task in self.tasks]
 
-    def _write_file(self, text):
-        """Write given text to the tasks file"""
-        self.f.write(text)
-
-    def _close_file(self):
-        """Just close file object"""
-        self.f.close()
+        with open(TASKS_PATH, 'w') as f:
+            json.dump(self.data, f)
 
 
 if __name__ == '__main__':
