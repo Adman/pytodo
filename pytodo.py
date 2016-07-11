@@ -83,7 +83,7 @@ class Pytodo:
             self.data = json.load(data_file)
 
         tasks = []
-        for i, task in enumerate(self.data['tasks']):
+        for task in self.data['tasks']:
             date_obj = datetime.datetime.strptime(task['date_added'],
                                                   '%Y-%m-%d %H:%M:%S.%f')
             tasks.append(Task(task['text'], task['priority'], date_obj))
