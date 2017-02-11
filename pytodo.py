@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2016,  Adrian Matejov
+# Copyright (C) 2013-2017,  Adrian Matejov
 
 import sys
 import pynotify
@@ -10,7 +10,8 @@ import json
 import datetime
 from operator import attrgetter
 
-TASKS_PATH = os.path.join(os.path.dirname(__file__), "tasks.json")
+TASKS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "tasks.json")
 
 
 class Task(object):
