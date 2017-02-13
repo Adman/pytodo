@@ -3,11 +3,11 @@
 
 # Copyright (C) 2013-2017,  Adrian Matejov
 
-import sys
 import pynotify
 import os
 import json
 import datetime
+import argparse
 from operator import attrgetter
 
 TASKS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -91,10 +91,9 @@ class Pytodo:
 
         return tasks
 
-    def add_task(self, words):
+    def add_task(self, words, priority):
         """Add new task"""
-        # TODO: add parameter for priority
-        self.tasks.append(Task(' '.join(words), '1',
+        self.tasks.append(Task(' '.join(words), str(priority),
                                datetime.datetime.utcnow()))
         self._sort_tasks()
         self._write_file()
@@ -125,31 +124,15 @@ class Pytodo:
 
         n.show()
 
-    def print_help(self):
-        """Print available commands on the screen"""
-        print "ToDo Notes, (c) 2013-2016, Adman"
-        print "Available arguments:"
-        print "     help - show available commands"
-        print "     add <task> - add a task to the todo list"
-        print "     rm/remove/done <number> - remove a task from the todo list"
-        print "     edit <number> <task> - edit a task from the todo list"
-
     def process(self):
-        cmd = self.args[0].lower() if len(self.args) else 0
+        if res.edit and res.id > -1:
+            self.edit_task(res.id, res.edit)
 
-        if len(self.args):
-            if cmd == 'help':
-                self.print_help()
-                sys.exit(1)
-            elif cmd == 'add':
-                self.add_task(self.args[1:])
-            elif cmd == 'rm' or cmd == 'remove' or cmd == 'done':
-                self.rm_task(self.args[1])
-            elif cmd == 'edit':
-                self.edit_task(int(self.args[1]), self.args[2:])
-            else:
-                self.print_help()
-                sys.exit(1)
+        if res.task_id_to_remove > -1:
+            self.rm_task(res.task_id_to_remove)
+
+        if res.new_task:
+            self.add_task(res.new_task, res.priority)
 
         self.show_notification()
 
@@ -163,7 +146,22 @@ class Pytodo:
 
 if __name__ == '__main__':
     pynotify.init("Pytodo")
-    args = sys.argv[1:]
 
-    todo = Pytodo(args)
+    argp = argparse.ArgumentParser()
+    argp.add_argument('-a', '--add', help='Add a task into ToDo List',
+                      dest='new_task', default=[], nargs='+')
+    argp.add_argument('-p', '--priority', choices=[0, 1, 2], type=int,
+                      default=1,
+                      help='Optional argument when adding a task to set \
+                            priority. Default 1. 0=low, 1=normal, 2=critical')
+    argp.add_argument('-r', '--remove', help='Remove tasks with given IDs',
+                      dest='task_id_to_remove', default=-1, type=int)
+    argp.add_argument('-e', '--edit', help='Edit task with given ID',
+                      default=[], nargs='+')
+    argp.add_argument('-i', '--id', type=int, default=-1,
+                      help='Provide this argument when you want to edit task \
+                            with this ID')
+    res = argp.parse_args()
+
+    todo = Pytodo(res)
     todo.process()
